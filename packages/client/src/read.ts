@@ -8,9 +8,7 @@ import { Hex, createPublicClient, http } from 'viem'
 import { normalize } from 'viem/ens'
 import { getChain } from './client'
 
-config({
-  path: process.env.ENV_FILE || '../.env',
-})
+config()
 
 const {
   CHAIN_ID: chainId = '31337',
@@ -29,7 +27,7 @@ const client = createPublicClient({
 
 // eslint-disable-next-line
 const _ = (async () => {
-  const name = normalize('lucas.arb.eth')
+  const name = normalize('blockful.eth')
 
   const twitter = await client.getEnsText({
     name,

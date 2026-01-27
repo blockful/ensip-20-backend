@@ -5,8 +5,8 @@
     "test:arb": "hardhat test ./test/arb.e2e.spec.ts --network localhost",
     "test:db": "hardhat test ./test/db.e2e.spec.ts --network localhost",
     "test:metadata": "hardhat test ./test/metadata.e2e.spec.ts --network localhost",
-    "start:read": "ts-node src/read.ts",
-    "start:write": "ts-node src/write.ts",
+    "read": "ts-node src/read.ts",
+    "write": "ts-node src/write.ts",
     "lint": "eslint . --ext .ts --fix"
   },
   "devDependencies": {
