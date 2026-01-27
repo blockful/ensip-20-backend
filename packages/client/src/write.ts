@@ -19,7 +19,7 @@ import {
 } from 'viem'
 import { normalize, packetToBytes } from 'viem/ens'
 import { privateKeyToAccount } from 'viem/accounts'
-import { addEnsContracts } from '@ensdomains/ensjs'
+// import { addEnsContracts } from '@ensdomains/ensjs'
 
 import { abi } from '@blockful/contracts/out/DatabaseResolver.sol/DatabaseResolver.json'
 import { abi as urAbi } from '@blockful/contracts/out/UniversalResolver.sol/UniversalResolver.json'
@@ -27,9 +27,7 @@ import { abi as scAbi } from '@blockful/contracts/out/SubdomainController.sol/Su
 import { MessageData, DomainData } from '@blockful/gateway/src/types'
 import { getRevertErrorData, getChain, handleDBStorage } from './client'
 
-config({
-  path: process.env.ENV_FILE || '../.env',
-})
+config()
 
 let {
   UNIVERSAL_RESOLVER_ADDRESS: universalResolver,
@@ -46,7 +44,8 @@ if (!chain) {
 }
 
 const client = createPublicClient({
-  chain: addEnsContracts(chain),
+  // chain: addEnsContracts(chain),
+  chain,
   transport: http(provider),
 }).extend(walletActions)
 console.log(`Connecting to ${chain?.name}.`)
@@ -64,7 +63,7 @@ const _ = (async () => {
     })
   }
 
-  const name = normalize('meditation.arb.eth')
+  const name = normalize('meditation.blockful.eth')
   const encodedName = toHex(packetToBytes(name))
   const node = namehash(name)
   const signer = privateKeyToAccount(privateKey as Hex)
@@ -199,7 +198,7 @@ const _ = (async () => {
           continue
         }
         default:
-          console.error('error registering domain: ', { err })
+          throw err
       }
     }
   }

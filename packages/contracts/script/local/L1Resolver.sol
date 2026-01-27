@@ -8,7 +8,9 @@ import {ReverseRegistrar} from
     "@ens-contracts/reverseRegistrar/ReverseRegistrar.sol";
 import {PublicResolver} from "@ens-contracts/resolvers/PublicResolver.sol";
 
+import {INameWrapper} from "@ens-contracts/wrapper/INameWrapper.sol";
 import {L1Verifier} from "@evmgateway/L1Verifier.sol";
+
 import {ENSHelper} from "../ENSHelper.sol";
 import {L1Resolver} from "../../src/L1Resolver.sol";
 import {L1Config} from "../config/L1Config.s.sol";
@@ -17,11 +19,10 @@ contract L1ResolverScript is Script, ENSHelper {
 
     function run() external {
         (
-            ENSRegistry registry,
             uint256 targetChainId,
             PublicResolver resolver,
             address registrar,
-            address nameWrapper
+            INameWrapper nameWrapper
         ) = (new L1Config(block.chainid, msg.sender)).activeNetworkConfig();
 
         string[] memory urls = new string[](1);
@@ -36,21 +37,16 @@ contract L1ResolverScript is Script, ENSHelper {
             targetChainId,
             address(resolver),
             registrar,
-            nameWrapper,
+            address(nameWrapper),
             verifier,
             metadataUrl
         );
 
-        // .eth
-        registry.setSubnodeOwner(rootNode, labelhash("eth"), msg.sender);
         // blockful.eth
-        registry.setSubnodeRecord(
-            namehash("eth"),
-            labelhash("blockful"),
-            msg.sender,
-            address(l1resolver),
-            100000
+        nameWrapper.registerAndWrapETH2LD(
+            "blockful", msg.sender, 31556952000, address(l1resolver), 1
         );
+
         resolver.setAddr(namehash("blockful.eth"), msg.sender);
         resolver.setText(namehash("blockful.eth"), "com.twitter", "@blockful");
 

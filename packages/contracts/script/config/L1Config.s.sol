@@ -7,6 +7,7 @@ import {ENSRegistry} from "@ens-contracts/registry/ENSRegistry.sol";
 import {ReverseRegistrar} from
     "@ens-contracts/reverseRegistrar/ReverseRegistrar.sol";
 import {NameWrapper} from "@ens-contracts/wrapper/NameWrapper.sol";
+import {INameWrapper} from "@ens-contracts/wrapper/INameWrapper.sol";
 import {UniversalResolver} from "@ens-contracts/utils/UniversalResolver.sol";
 import {BaseRegistrarImplementation} from
     "@ens-contracts/ethregistrar/BaseRegistrarImplementation.sol";
@@ -29,51 +30,41 @@ contract L1Config is Script, ENSHelper, DeployHelper {
     NetworkConfig public activeNetworkConfig;
 
     struct NetworkConfig {
-        ENSRegistry registry;
         uint256 targetChainId;
         PublicResolver resolver;
         address registrar;
-        address nameWrapper;
+        INameWrapper nameWrapper;
     }
 
     constructor(uint256 chainId, address sender) {
-        // if (chainId == 11155111) activeNetworkConfig = _getSepoliaConfig();
-        // else if (chainId == 1) activeNetworkConfig = _getMainnetConfig();
-        // else activeNetworkConfig =
-        _getAnvilConfig(sender);
+        if (chainId == 11155111) activeNetworkConfig = _getSepoliaConfig();
+        else if (chainId == 1) activeNetworkConfig = _getMainnetConfig();
+        else activeNetworkConfig = _getAnvilConfig(sender);
     }
 
-    // function _getMainnetConfig() private view returns (NetworkConfig memory) {
-    //     return NetworkConfig({
-    //         registry: ENSRegistry(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e),
-    //         rollup: IRollupCore(0x5eF0D09d1E6204141B4d37530808eD19f60FBa35),
-    //         targetChainId: 42161,
-    //         resolver: getContractAddress(
-    //             "L2ArbitrumResolver", "PublicResolver", 42161
-    //         ),
-    //         registrar: getContractAddress("SubdomainController", 42161),
-    //         nameWrapper: getContractAddress("NameWrapper", 42161)
-    //     });
-    // }
+    function _getMainnetConfig() private view returns (NetworkConfig memory) {
+        return NetworkConfig({
+            targetChainId: 1,
+            resolver: PublicResolver(getContractAddress("PublicResolver", 1)),
+            registrar: getContractAddress("SubdomainController", 1),
+            nameWrapper: NameWrapper(getContractAddress("NameWrapper", 1))
+        });
+    }
 
-    // function _getSepoliaConfig() private view returns (NetworkConfig memory) {
-    //     return NetworkConfig({
-    //         registry: ENSRegistry(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e),
-    //         rollup: IRollupCore(0xd80810638dbDF9081b72C1B33c65375e807281C8),
-    //         targetChainId: 421614,
-    //         resolver: getContractAddress(
-    //             "L2ArbitrumResolver", "PublicResolver", 421614
-    //         ),
-    //         registrar: getContractAddress("SubdomainController", 421614),
-    //         nameWrapper: getContractAddress("NameWrapper", 421614)
-    //     });
-    // }
+    function _getSepoliaConfig() private view returns (NetworkConfig memory) {
+        return NetworkConfig({
+            targetChainId: 11155111,
+            resolver: PublicResolver(getContractAddress("PublicResolver", 11155111)),
+            registrar: getContractAddress("SubdomainController", 11155111),
+            nameWrapper: NameWrapper(getContractAddress("NameWrapper", 11155111))
+        });
+    }
 
     function _getAnvilConfig(address sender)
         private
         returns (NetworkConfig memory)
     {
-        if (address(activeNetworkConfig.registry) != address(0)) {
+        if (address(activeNetworkConfig.nameWrapper) != address(0)) {
             return activeNetworkConfig;
         }
 
@@ -123,7 +114,7 @@ contract L1Config is Script, ENSHelper, DeployHelper {
             baseRegistrar, priceOracle, 0, 1, registrar, nameWrapper, registry
         );
         nameWrapper.setController(address(registrarController), true);
-        nameWrapper.setController(msg.sender, true);
+        nameWrapper.setController(sender, true);
 
         uint256 subdomainPrice = 0.001 ether;
         SubdomainController subdomainController =
@@ -143,13 +134,16 @@ contract L1Config is Script, ENSHelper, DeployHelper {
 
         console.log("Registry deployed at", address(registry));
         console.log("UniversalResolver deployed at", address(universalResolver));
+        console.log("PublicResolver deployed at", address(publicResolver));
+        console.log(
+            "SubdomainController deployed at", address(subdomainController)
+        );
 
         activeNetworkConfig = NetworkConfig({
-            registry: registry,
             targetChainId: 31337,
             resolver: publicResolver,
-            registrar: address(registrar),
-            nameWrapper: address(nameWrapper)
+            registrar: address(subdomainController),
+            nameWrapper: nameWrapper
         });
 
         return activeNetworkConfig;
