@@ -3,59 +3,57 @@
  * Blockchain Node and to redirect the request to a Gateway whenever necessary.
  */
 
-import { config } from 'dotenv'
-import { Hex, createPublicClient, http } from 'viem'
+import { createPublicClient, http } from 'viem'
 import { normalize } from 'viem/ens'
-import { getChain } from './client'
 
-config()
+import { getChain } from './client'
+import { readEnvSchema } from './env'
 
 const {
-  CHAIN_ID: chainId = '31337',
-  RPC_URL: provider = 'http://127.0.0.1:8545/',
-  GATEWAY_URL: gateway = 'http://127.0.0.1:3000/{sender}/{data}.json',
+  CHAIN_ID,
+  RPC_URL,
+  GATEWAY_URL: gatewayUrls,
   UNIVERSAL_RESOLVER_ADDRESS: universalResolverAddress,
-} = process.env
+} = readEnvSchema.parse(process.env)
 
-const chain = getChain(parseInt(chainId))
+const chain = getChain(CHAIN_ID)
 console.log(`Connecting to ${chain?.name}.`)
 
 const client = createPublicClient({
   chain,
-  transport: http(provider),
+  transport: http(RPC_URL),
 })
 
 // eslint-disable-next-line
 const _ = (async () => {
-  const name = normalize('meditation.blockful.eth')
+  const name = normalize('blockful.eth')
 
   const twitter = await client.getEnsText({
     name,
     key: 'com.twitter',
-    universalResolverAddress: universalResolverAddress as Hex,
-    gatewayUrls: [gateway],
+    universalResolverAddress,
+    gatewayUrls,
   })
   const avatar = await client.getEnsAvatar({
     name,
-    universalResolverAddress: universalResolverAddress as Hex,
-    gatewayUrls: [gateway],
+    universalResolverAddress,
+    gatewayUrls,
   })
-
   const address = await client.getEnsAddress({
     name,
-    universalResolverAddress: universalResolverAddress as Hex,
-    gatewayUrls: [gateway],
+    universalResolverAddress,
+    gatewayUrls,
   })
   const addressBtc = await client.getEnsAddress({
     name,
     coinType: 1,
-    universalResolverAddress: universalResolverAddress as Hex,
-    gatewayUrls: [gateway],
+    universalResolverAddress,
+    gatewayUrls,
   })
   const domainName = await client.getEnsName({
     address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
-    universalResolverAddress: universalResolverAddress as Hex,
-    gatewayUrls: [gateway],
+    universalResolverAddress,
+    gatewayUrls,
   })
 
   console.log({
