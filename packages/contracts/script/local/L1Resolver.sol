@@ -20,6 +20,7 @@ contract L1ResolverScript is Script, ENSHelper {
     function run() external {
         (
             uint256 targetChainId,
+            address registry,
             PublicResolver resolver,
             address registrar,
             INameWrapper nameWrapper
@@ -35,7 +36,7 @@ contract L1ResolverScript is Script, ENSHelper {
         L1Verifier verifier = new L1Verifier(urls);
         L1Resolver l1resolver = new L1Resolver(
             targetChainId,
-            address(resolver),
+            registry,
             registrar,
             address(nameWrapper),
             verifier,

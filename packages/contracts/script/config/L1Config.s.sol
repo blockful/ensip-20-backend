@@ -31,6 +31,7 @@ contract L1Config is Script, ENSHelper, DeployHelper {
 
     struct NetworkConfig {
         uint256 targetChainId;
+        address registry;
         PublicResolver resolver;
         address registrar;
         INameWrapper nameWrapper;
@@ -46,6 +47,7 @@ contract L1Config is Script, ENSHelper, DeployHelper {
         return NetworkConfig({
             targetChainId: 1,
             resolver: PublicResolver(getContractAddress("PublicResolver", 1)),
+            registry: getContractAddress("ENSRegistry", 1),
             registrar: getContractAddress("SubdomainController", 1),
             nameWrapper: NameWrapper(getContractAddress("NameWrapper", 1))
         });
@@ -55,6 +57,7 @@ contract L1Config is Script, ENSHelper, DeployHelper {
         return NetworkConfig({
             targetChainId: 11155111,
             resolver: PublicResolver(getContractAddress("PublicResolver", 11155111)),
+            registry: getContractAddress("ENSRegistry", 11155111),
             registrar: getContractAddress("SubdomainController", 11155111),
             nameWrapper: NameWrapper(getContractAddress("NameWrapper", 11155111))
         });
@@ -141,6 +144,7 @@ contract L1Config is Script, ENSHelper, DeployHelper {
 
         activeNetworkConfig = NetworkConfig({
             targetChainId: 31337,
+            registry: address(registry),
             resolver: publicResolver,
             registrar: address(subdomainController),
             nameWrapper: nameWrapper
