@@ -74,6 +74,8 @@ The smart contracts are the backbone of the External Resolver. They include the 
 
 #### Database Resolver
 
+A smart contract that stores ENS domain data off-chain in a database. It enables cost-effective domain management by handling storage operations through the Gateway.
+
 #### L1 Resolver
 
 A smart contract that redirects requests to specified external contract deployed to any EVM compatible protocol.
@@ -149,19 +151,7 @@ try {
 
 To run the External Resolver project in its entirety, you'll need to complete the installation process. Since we provide an off-chain resolver solution, it's essential to set up both the database and the Arbitrum Layer 2 environment. This will enable you to run comprehensive end-to-end tests and verify the functionality of the entire project.
 
-### Prerequisites
-
-- [Foundry](https://book.getfoundry.sh)
-  - Run local node by calling `anvil`
-
-### Setup
-
-1. Clone this repository to your local machine.
-2. Copy the `env.example` file to `.env` in the root directory.
-3. Install dependencies: `npm install`
-4. Build the contracts: `npm run build`
-
-#### Database Setup
+### Database Setup
 
 1. Run a local PostgreSQL instance (no initial data is inserted):
 
@@ -184,7 +174,7 @@ To run the External Resolver project in its entirety, you'll need to complete th
 4. Write properties to a given domain:
 
     ```bash
-      npm run client start:write:db
+    npm run client start:write:db
     ```
 
 5. Request domain properties through the client:
@@ -193,7 +183,7 @@ To run the External Resolver project in its entirety, you'll need to complete th
     npm run client read
     ```
 
-##### Migrations
+#### Migrations
 
 This repository relies on migrations to manage the database schema. To create a new migration, run the following command:
 
@@ -207,7 +197,7 @@ To apply the migration, run the following command:
 npm run migration:generate -- -n <migration_name>
 ```
 
-#### Layer 2 Setup
+### Layer 2 Setup
 
 1. Deploy the contracts to the local Arbitrum node (follow the [Arbitrum's local node setup tutorial](https://docs.arbitrum.io/run-arbitrum-node/run-local-dev-node)):
 
@@ -229,39 +219,33 @@ npm run migration:generate -- -n <migration_name>
     npm run client start
     ```
 
-## Deployment
+### Layer 1 Setup
 
-### Gateway
-
-Ensure you have the [Railway CLI](https://docs.railway.app/guides/cli) installed.
-
-1. Install the Railway CLI:
+1. Run the local node:
 
     ```bash
-    npm i -g @railway/cli
+    anvil
     ```
 
-2. Log in to your Railway account:
+2. Deploy the contracts to the local node:
 
     ```bash
-    railway login
+    npm run contracts dev:eth
     ```
 
-3. Link the repo to the project:
+3. Gather the contract address from the terminal and add it [here](https://github.com/blockful-io/external-resolver/blob/main/packages/contracts/script/local/L1ArbitrumResolver.s.sol#L56) so the L1 domain gets resolved by the L2 contract you just deployed.
+
+4. Start the gateway:
 
     ```bash
-    railway link
+    npm run gateway dev:eth
     ```
 
-4. Deploy the Gateway:
+5. Request domain properties through the client:
 
     ```bash
-    railway up
+    npm run client read
     ```
-
-### Contracts
-
-1. `npm run contracts deploy:db -- --rpc-url <RPC_URL>`
 
 ## Architecture
 

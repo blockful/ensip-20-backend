@@ -43,19 +43,19 @@ contract L1Resolver is
 
     using EVMFetcher for EVMFetcher.EVMFetchRequest;
 
-    //////// CONTRACT VARIABLE STATE ////////
+    // CONTRACT VARIABLE STATE //
 
     // address of each target contract
     mapping(bytes32 => address) public targets;
 
-    //////// CONTRACT IMMUTABLE STATE ////////
+    // CONTRACT IMMUTABLE STATE //
 
     // id of chain that is storing the domains
     uint256 public immutable chainId;
     // EVM Verifier to handle data validation based on Merkle Proof
     IEVMVerifier immutable verifier;
 
-    //////// CONSTANTS ////////
+    // CONSTANTS //
 
     /// Universal constant for the ETH coin type.
     uint256 constant COIN_TYPE_ETH = 60;
@@ -70,7 +70,7 @@ contract L1Resolver is
     bytes32 public constant TARGET_REGISTRAR = keccak256("registrar");
     bytes32 public constant TARGET_NAME_WRAPPER = keccak256("nameWrapper");
 
-    //////// INITIALIZER ////////
+    // INITIALIZER //
 
     /**
      * @notice Initializes the contract with the initial parameters
@@ -104,7 +104,7 @@ contract L1Resolver is
         setTarget(TARGET_NAME_WRAPPER, _target_nameWrapper);
     }
 
-    //////// EIP Operation Router ////////
+    // EIP Operation Router //
 
     /**
      * @notice Validates and processes write parameters for deferred storage mutations
@@ -136,7 +136,7 @@ contract L1Resolver is
         revert FunctionNotSupported();
     }
 
-    //////// ENSIP Wildcard Writing ////////
+    // ENSIP Wildcard Writing //
 
     function registerParams(
         bytes calldata,
@@ -157,7 +157,7 @@ contract L1Resolver is
         getOperationHandler(msg.data);
     }
 
-    //////// ENSIP 10 ////////
+    // ENSIP 10 //
 
     /**
      * @dev Resolve and verify a record stored in l2 target address. It supports subdomain by fetching target recursively to the nearest parent.
@@ -199,7 +199,7 @@ contract L1Resolver is
         }
     }
 
-    //////// ENS ERC-137 ////////
+    // ENS ERC-137 //
 
     /**
      * Sets the address associated with an ENS node.
@@ -234,7 +234,7 @@ contract L1Resolver is
         return abi.encode(address(bytes20(values[1])));
     }
 
-    //////// ENS ERC-2304 ////////
+    // ENS ERC-2304 //
 
     /**
      * Sets the address associated with an ENS node.
@@ -291,7 +291,7 @@ contract L1Resolver is
         return abi.encode(values[1]);
     }
 
-    //////// ENS ERC-634 ////////
+    // ENS ERC-634 //
 
     /**
      * Sets the text data associated with an ENS node and key.
@@ -347,7 +347,7 @@ contract L1Resolver is
         return abi.encode(string(values[1]));
     }
 
-    //////// ENS ERC-1577 ////////
+    // ENS ERC-1577 //
 
     /**
      * Sets the contenthash associated with an ENS node.
@@ -387,7 +387,7 @@ contract L1Resolver is
         return values[1];
     }
 
-    //////// ENS WRITE DEFERRAL RESOLVER (EIP-5559) ////////
+    // ENS WRITE DEFERRAL RESOLVER (EIP-5559) //
 
     /**
      * @notice Builds an OperationHandledOnchain error.
@@ -396,7 +396,7 @@ contract L1Resolver is
         revert OperationHandledOnchain(chainId, target);
     }
 
-    //////// ENS ERC-165 ////////
+    // ENS ERC-165 //
 
     function supportsInterface(bytes4 interfaceID)
         public
@@ -418,7 +418,7 @@ contract L1Resolver is
             || super.supportsInterface(interfaceID);
     }
 
-    //////// PUBLIC WRITE FUNCTIONS ////////
+    // PUBLIC WRITE FUNCTIONS //
 
     /**
      * @notice Sets the new metadata URL and emits a MetadataUrlSet event.

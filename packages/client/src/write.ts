@@ -3,7 +3,6 @@
  * Blockchain Node and to redirect the request to a Gateway whenever necessary.
  */
 
-import { config } from 'dotenv'
 import {
   Hex,
   createPublicClient,
@@ -19,55 +18,42 @@ import {
 } from 'viem'
 import { normalize, packetToBytes } from 'viem/ens'
 import { privateKeyToAccount } from 'viem/accounts'
-import { addEnsContracts } from '@ensdomains/ensjs'
+// import { addEnsContracts } from '@ensdomains/ensjs'
 
 import { abi } from '@blockful/contracts/out/DatabaseResolver.sol/DatabaseResolver.json'
 import { abi as urAbi } from '@blockful/contracts/out/UniversalResolver.sol/UniversalResolver.json'
 import { abi as scAbi } from '@blockful/contracts/out/SubdomainController.sol/SubdomainController.json'
 import { MessageData, DomainData } from '@blockful/gateway/src/types'
 import { getRevertErrorData, getChain, handleDBStorage } from './client'
+import { writeEnvSchema } from './env'
 
-config({
-  path: process.env.ENV_FILE || '../.env',
-})
-
-let {
-  UNIVERSAL_RESOLVER_ADDRESS: universalResolver,
-  RESOLVER_ADDRESS: resolver,
-  CHAIN_ID: chainId = '31337',
-  RPC_URL: provider = 'http://127.0.0.1:8545/',
-  L2_RPC_URL: providerL2,
+const {
+  CHAIN_ID,
+  RPC_URL,
+  UNIVERSAL_RESOLVER_ADDRESS: universalResolverAddress,
+  RESOLVER_ADDRESS: resolverAddress,
+  L2_RPC_URL,
   PRIVATE_KEY: privateKey,
-} = process.env
+} = writeEnvSchema.parse(process.env)
 
-const chain = getChain(parseInt(chainId))
+const chain = getChain(CHAIN_ID)
 if (!chain) {
   throw new Error('Chain not found')
 }
 
 const client = createPublicClient({
-  chain: addEnsContracts(chain),
-  transport: http(provider),
+  // chain: addEnsContracts(chain),
+  chain,
+  transport: http(RPC_URL),
 }).extend(walletActions)
 console.log(`Connecting to ${chain?.name}.`)
 
 // eslint-disable-next-line
 const _ = (async () => {
-  if (!resolver) {
-    throw new Error('RESOLVER_ADDRESS is required')
-  }
-
-  if (!universalResolver) {
-    universalResolver = getChainContractAddress({
-      chain: client.chain,
-      contract: 'ensUniversalResolver',
-    })
-  }
-
-  const name = normalize('meditation.arb.eth')
+  const name = normalize('meditation.blockful.eth')
   const encodedName = toHex(packetToBytes(name))
   const node = namehash(name)
-  const signer = privateKeyToAccount(privateKey as Hex)
+  const signer = privateKeyToAccount(privateKey)
   const duration = 31556952000n
 
   const multicallData = [
@@ -80,7 +66,7 @@ const _ = (async () => {
           owner: signer.address,
           duration,
           secret: zeroHash,
-          resolver,
+          resolver: resolverAddress,
           extraData: zeroHash,
         },
       ],
@@ -115,7 +101,12 @@ const _ = (async () => {
   for (const calldata of multicallData) {
     try {
       await client.readContract({
-        address: universalResolver as Hex,
+        address:
+          universalResolverAddress ||
+          getChainContractAddress({
+            chain: client.chain,
+            contract: 'ensUniversalResolver',
+          }),
         abi: urAbi,
         functionName: 'resolve',
         args: [
@@ -163,7 +154,7 @@ const _ = (async () => {
 
           const l2Client = createPublicClient({
             chain: getChain(Number(chainId)),
-            transport: http(providerL2),
+            transport: http(L2_RPC_URL),
           }).extend(walletActions)
 
           let value = 0n
@@ -199,7 +190,7 @@ const _ = (async () => {
           continue
         }
         default:
-          console.error('error registering domain: ', { err })
+          throw err
       }
     }
   }
